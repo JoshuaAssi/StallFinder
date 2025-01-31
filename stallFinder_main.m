@@ -1,9 +1,9 @@
 
 %% Fill out the below information
-% DDD = ; % DDD is a concatenation of all of the volumes. A double of size [nz, nx, ny, nt]
-% zz = ; % zz is a vector of 2 numbers corresponding to the minimum and maximum z values for cropping 
-% saveDir = ; % file name (string) of save location
-% scoreThreshold = .25; % determines the sensitivity of the SVM ranging from 0 to 1. Default is .25
+DDD = ; % DDD is a concatenation of all of the volumes. A double of size [nz, nx, ny, nt]
+zz = ; % zz is a vector of 2 numbers corresponding to the minimum and maximum z values for cropping 
+saveDir = ; % file name (string) of save location
+scoreThreshold = .25; % determines the sensitivity of the SVM ranging from 0 to 1. Default is .25
 
 %% Main script
 currentDir = pwd;
