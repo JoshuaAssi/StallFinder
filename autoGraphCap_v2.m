@@ -4,7 +4,7 @@ function [S, Sn, Enh, skel, res] = autoGraphCap_v2(DD, net_reg, net, net12_16_fi
 %
 % DD2 = DD;
 % DD = imresize3(DD, [size(DD, 1) 2*size(DD, 2) 2*size(DD, 3)], 'linear');
-DD(DD == 0) = mean(DD(DD(:)~=0));
+% DD(DD == 0) = mean(DD(DD(:)~=0));
 DD = medfilt3(DD);
 logDD = DD; % log applied beforehand
 logDD = mat2gray(logDD);
