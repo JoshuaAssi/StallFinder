@@ -1,7 +1,7 @@
 
 %% Fill out the below information
 DDD = ; % DDD is a concatenation of all of the volumes. A double of size [nz, nx, ny, nt]
-zz = ; % zz is a vector of 2 numbers corresponding to the minimum and maximum z values for cropping 
+zz = []; % zz is a vector of 2 numbers corresponding to the minimum and maximum z values for cropping 
 saveDir = ; % file name (string) of save location
 scoreThreshold = .25; % determines the sensitivity of the SVM ranging from 0 to 1. Default is .25
 
@@ -13,19 +13,39 @@ if zz(2)-zz(1) < 31 % the depth range must be at least 32 voxels
     error('Depth range must be at least 32 voxels. Specify a larger range or zero pad the image.')
 end
 
-tic
 if ~exist(saveDir,'dir')
     mkdir(saveDir)
 end
 [Nz, nx, ny, T] = size(DDD);
 DDDc = DDD(zz(1):zz(2),:,:,:);
+nz = zz(2)-zz(1) + 1;
 DDDproc = log(DDDc);
 DDavg = mean(DDDproc,4);
 
 % Preprocess DDD
 
+% register DDD
+tic
+csTforms = nan(3, 3, T);
+Davg = squeeze(max(DDavg));
+mips = squeeze(max(DDDproc));
+for t = 1:T
+    D0 = squeeze(mips(:,:,t));
+    reg = registerCS(D0, Davg);
+    csTforms(:,:,t) = reg.Transformation.T;
+end
+
+% apply registration
+DDDreg = nan(size(DDDproc));
+for t = 1:T
+    DDDreg(:,:,:,t) = imwarp(squeeze(DDDproc(:,:,:,t)), affine3d(to3Dtform(squeeze(csTforms(:,:,t)))), 'OutputView', imref3d([nz nx ny]));
+end
+DDDreg(DDDreg==0) = mean(DDDreg, 'all');
+DDDproc = DDDreg;
+disp('Time to register enface:')
+toc
+
 % average every 5 frames
-nz = zz(2)-zz(1) + 1;
 DDD5avg = nan(nz, nx, ny, floor(T/5));
 tI =0;
 for t1 = 1:5:(T-4)
@@ -126,28 +146,6 @@ S = S_new;
 nS = length(S);
 
 disp('Time to generate segmentation and skeletonization:')
-toc
-tic
-
-% register DDD
-csTforms = nan(3, 3,T);
-Davg = squeeze(max(DDavg));
-mips = squeeze(max(DDDproc));
-for t = 1:T
-    D0 = squeeze(mips(:,:,t));
-    reg = registerCS(D0, Davg);
-    csTforms(:,:,t) = reg.Transformation.T;
-end
-
-% apply registration
-DDDreg = nan(size(DDDproc));
-for t = 1:T
-    DDDreg(:,:,:,t) = imwarp(squeeze(DDDproc(:,:,:,t)), affine3d(to3Dtform(squeeze(csTforms(:,:,t)))), 'OutputView', imref3d([nz nx ny]));
-end
-DDDreg(DDDreg==0) = mean(DDDreg, 'all');
-DDDproc = DDDreg;
-
-disp('Time to register enface:')
 toc
 tic
 
